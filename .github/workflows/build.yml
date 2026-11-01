@@ -1,0 +1,60 @@
+# Builds Sleep On It on GitHub's free cloud Macs and publishes SleepOnIt.ipa
+# under "Releases". AltStore / SideStore sign it with your Apple ID when installing.
+name: Build app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: brew install xcodegen ldid
+
+      - name: Create Xcode project
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr 'A-Z' 'a-z' | tr -cd 'a-z0-9')
+          export BUNDLE_PREFIX="com.${OWNER}"
+          export DEVELOPMENT_TEAM=""
+          xcodegen generate
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project SleepOnIt.xcodeproj \
+            -scheme SleepOnIt \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package SleepOnIt.ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/SleepOnIt.app Payload/
+          APP=Payload/SleepOnIt.app
+          # Attach the App Group permission so AltStore/SideStore set it up when signing.
+          ldid -SShareExtension/ShareExtension.entitlements "$APP/PlugIns/ShareExtension.appex/ShareExtension"
+          ldid -SApp/SleepOnIt.entitlements "$APP/SleepOnIt"
+          zip -qr SleepOnIt.ipa Payload
+
+      - name: Publish to Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" SleepOnIt.ipa \
+            --repo "${{ github.repository }}" \
+            --title "Sleep On It (build ${{ github.run_number }})" \
+            --notes "Download SleepOnIt.ipa on your iPhone and open it with AltStore."
