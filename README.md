@@ -71,10 +71,11 @@ From then on, AltStore or SideStore re-signs the app before the 7 days are up. I
 | You want to… | Do this |
 |---|---|
 | Add something | Share a page to **Sleep On It**, or tap **+** and paste a link |
+| Wait until a specific day | When adding, tap **Pick date** and choose the day |
 | Open the product | Tap the row |
-| Decide early | Swipe left to **Skip**, swipe right for **Bought**. Skipping early still counts as saved. |
-| Fix a name or price, or change the wait | Long-press the row → **Edit** |
-| Undo a decision | Swipe right on a decided item → **Undo** |
+| Decide early | Swipe right for **Bought**, swipe left for **Skip**. Skipping early still counts as saved. |
+| Fix the name, price, link or photo | Swipe left → **Edit** (or long-press → **Edit**). The countdown never changes; to restart it, add the item again. |
+| Undo a decision | Tap **Undo** on the item, or swipe right. It goes back to waiting with its original countdown. |
 | Delete | Swipe left → **Delete** |
 
 Notifications fire when the wait ends. If that lands overnight, you'll get the nudge at 9am instead.
