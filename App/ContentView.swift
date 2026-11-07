@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(\.openURL) private var openURL
     @State private var showingAdd = false
     @State private var editing: WishItem?
+    @State private var showingAbout = false
 
     var body: some View {
         NavigationStack {
@@ -44,6 +45,10 @@ struct ContentView: View {
             }
             .navigationTitle("Sleep On It")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showingAbout = true } label: { Image(systemName: "info.circle") }
+                        .accessibilityLabel("About and feedback")
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button { showingAdd = true } label: { Image(systemName: "plus") }
                         .accessibilityLabel("Add item")
@@ -60,6 +65,7 @@ struct ContentView: View {
                     onCancel: { showingAdd = false }
                 )
             }
+            .sheet(isPresented: $showingAbout) { AboutView() }
             .sheet(item: $editing) { item in
                 EditItemView(item: item) { updated in
                     store.update(updated)
@@ -77,12 +83,17 @@ struct ContentView: View {
             item: item,
             onOpen: { openURL(item.url) },
             onBought: { withAnimation { store.decide(item, .bought) } },
-            onSkip: { withAnimation { store.decide(item, .skipped) } }
+            onSkip: { withAnimation { store.decide(item, .skipped) } },
+            onUndo: { withAnimation { store.decide(item, .waiting) } }
         )
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button(role: .destructive) { withAnimation { store.delete(item) } } label: {
                 Label("Delete", systemImage: "trash")
             }
+            Button { editing = item } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            .tint(.orange)
             if item.status == .waiting {
                 Button { withAnimation { store.decide(item, .skipped) } } label: {
                     Label("Skip", systemImage: "hand.thumbsdown")
@@ -98,7 +109,7 @@ struct ContentView: View {
                 .tint(.indigo)
             } else {
                 Button { withAnimation { store.decide(item, .waiting) } } label: {
-                    Label("Undo", systemImage: "arrow.uturn.backward")
+                    Label(item.status == .bought ? "Not bought" : "Undo skip", systemImage: "arrow.uturn.backward")
                 }
                 .tint(.gray)
             }

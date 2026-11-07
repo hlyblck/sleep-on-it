@@ -5,6 +5,7 @@ struct ItemRow: View {
     let onOpen: () -> Void
     let onBought: () -> Void
     let onSkip: () -> Void
+    let onUndo: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -63,21 +64,37 @@ struct ItemRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 ProgressView(value: item.progress)
                     .tint(.indigo)
-                Text("\(item.daysLeft == 1 ? "1 day" : "\(item.daysLeft) days") left of \(item.waitDays)")
+                Text("\(item.daysLeft == 1 ? "1 day" : "\(item.daysLeft) days") left · ready \(item.readyDate.formatted(.dateTime.month(.abbreviated).day()))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
         case .bought:
-            Label("Bought \(decidedText)", systemImage: "bag.fill")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                Label("Bought \(decidedText)", systemImage: "bag.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                undoButton
+            }
 
         case .skipped:
-            Label(item.price.map { "Skipped · saved \($0.asCurrency)" } ?? "Skipped", systemImage: "checkmark.seal.fill")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.green)
+            HStack(spacing: 8) {
+                Label(item.price.map { "Skipped · saved \($0.asCurrency)" } ?? "Skipped", systemImage: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.green)
+                undoButton
+            }
         }
+    }
+
+    /// Moves the item back to "sleeping on it". Its original countdown is kept.
+    private var undoButton: some View {
+        Button(action: onUndo) {
+            Label("Undo", systemImage: "arrow.uturn.backward")
+                .font(.caption)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.mini)
     }
 
     private var decidedText: String {
