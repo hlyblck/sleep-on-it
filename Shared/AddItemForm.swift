@@ -10,11 +10,18 @@ struct AddItemForm: View {
     @State private var autoTitle = ""
     @State private var priceText = ""
     @State private var imageURL: URL?
-    @State private var waitDays = AppConfig.defaultWait
+    @State private var waitDays = AppConfig.defaultWait   // 0 means "Pick date"
+    @State private var customDate = Calendar.current.date(byAdding: .day, value: 21, to: Date()) ?? Date()
     @State private var isLoading = false
     @State private var fetchedFor: URL?
 
     private var parsedURL: URL? { URLExtract.firstURL(in: urlText) }
+
+    private var plannedReadyDate: Date {
+        waitDays == 0
+            ? WaitMath.morning(of: customDate)
+            : Calendar.current.date(byAdding: .day, value: waitDays, to: Date()) ?? Date()
+    }
 
     var body: some View {
         NavigationStack {
@@ -59,13 +66,16 @@ struct AddItemForm: View {
                         ForEach(AppConfig.waitOptions, id: \.self) { days in
                             Text("\(days) days").tag(days)
                         }
+                        Text("Pick date").tag(0)
                     }
                     .pickerStyle(.segmented)
+                    if waitDays == 0 {
+                        DatePicker("Ready on", selection: $customDate, in: WaitMath.tomorrow..., displayedComponents: .date)
+                    }
                 } header: {
                     Text("Sleep on it for")
                 } footer: {
-                    let ready = Calendar.current.date(byAdding: .day, value: waitDays, to: Date()) ?? Date()
-                    Text("You'll get a nudge on \(ready.formatted(.dateTime.weekday(.wide).month(.wide).day())).")
+                    Text("You'll get a nudge on \(plannedReadyDate.formatted(.dateTime.weekday(.wide).month(.wide).day())).")
                 }
             }
             .navigationTitle("Sleep on it")
@@ -113,9 +123,26 @@ struct AddItemForm: View {
             title: name.isEmpty ? (url.host ?? url.absoluteString) : name,
             imageURL: imageURL,
             price: MetadataFetcher.parsePrice(priceText),
-            waitDays: waitDays
+            waitDays: waitDays == 0 ? WaitMath.daysUntil(plannedReadyDate) : waitDays,
+            customReadyDate: waitDays == 0 ? plannedReadyDate : nil
         )
         onSave(item)
+    }
+}
+
+enum WaitMath {
+    static var tomorrow: Date {
+        let today = Calendar.current.startOfDay(for: Date())
+        return Calendar.current.date(byAdding: .day, value: 1, to: today) ?? Date()
+    }
+
+    /// A picked date becomes 9am that day, so the nudge arrives at a sensible hour.
+    static func morning(of date: Date) -> Date {
+        Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: date) ?? date
+    }
+
+    static func daysUntil(_ date: Date) -> Int {
+        max(1, Int(ceil(date.timeIntervalSinceNow / 86_400)))
     }
 }
 

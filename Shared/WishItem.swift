@@ -12,11 +12,16 @@ struct WishItem: Identifiable, Codable, Equatable {
     var price: Double?
     var addedAt = Date()
     var waitDays: Int = AppConfig.defaultWait
+    /// Set when you picked a specific date instead of 7 / 14 / 30 days.
+    var customReadyDate: Date?
     var status: ItemStatus = .waiting
     var decidedAt: Date?
 
+    /// When the wait ends. Always measured from when the item was first added,
+    /// so editing an item or undoing a decision never restarts the clock.
     var readyDate: Date {
-        Calendar.current.date(byAdding: .day, value: waitDays, to: addedAt) ?? addedAt
+        if let customReadyDate { return customReadyDate }
+        return Calendar.current.date(byAdding: .day, value: waitDays, to: addedAt) ?? addedAt
     }
 
     var isReady: Bool { Date() >= readyDate }

@@ -14,7 +14,7 @@ enum Notifier {
 
         let content = UNMutableNotificationContent()
         content.title = "Still want it?"
-        content.body = "Your \(item.waitDays)-day wait on \(item.title) is over. Buy it or skip it."
+        content.body = "Your wait on \(item.title) is over. Buy it or skip it."
         content.sound = .default
 
         let fireDate = politeTime(for: item.readyDate)
