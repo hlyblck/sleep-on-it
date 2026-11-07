@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(\.openURL) private var openURL
     @State private var showingAdd = false
     @State private var editing: WishItem?
+    @State private var showingAbout = false
 
     var body: some View {
         NavigationStack {
@@ -44,6 +45,10 @@ struct ContentView: View {
             }
             .navigationTitle("Sleep On It")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showingAbout = true } label: { Image(systemName: "info.circle") }
+                        .accessibilityLabel("About and feedback")
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button { showingAdd = true } label: { Image(systemName: "plus") }
                         .accessibilityLabel("Add item")
@@ -60,6 +65,7 @@ struct ContentView: View {
                     onCancel: { showingAdd = false }
                 )
             }
+            .sheet(isPresented: $showingAbout) { AboutView() }
             .sheet(item: $editing) { item in
                 EditItemView(item: item) { updated in
                     store.update(updated)

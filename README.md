@@ -77,6 +77,7 @@ From then on, AltStore or SideStore re-signs the app before the 7 days are up. I
 | Fix the name, price, link or photo | Swipe left → **Edit** (or long-press → **Edit**). The countdown never changes; to restart it, add the item again. |
 | Undo a decision | Tap **Undo** on the item, or swipe right. It goes back to waiting with its original countdown. |
 | Delete | Swipe left → **Delete** |
+| Send feedback or request a feature | Tap **ⓘ** in the top left → **Send feedback** |
 
 Notifications fire when the wait ends. If that lands overnight, you'll get the nudge at 9am instead.
 
